@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> — Mentoria Univates</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+  <% if (typeof user !== 'undefined' && user) { %>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="brand">
+        <span class="brand-icon">M</span>
+        Mentoria Univates
+      </a>
+      <div class="nav-links">
+        <% if (user.role === 'ALUNO') { %>
+          <a href="/mentores">Buscar Mentores</a>
+          <a href="/perfil">Meu Perfil</a>
+          <a href="/historico">Histórico</a>
+        <% } %>
+        <% if (user.role === 'MENTOR') { %>
+          <a href="/mentor/solicitacoes">Solicitações</a>
+          <a href="/mentor/perfil">Meu Perfil</a>
+          <a href="/historico">Histórico</a>
+        <% } %>
+        <% if (user.role === 'ADMIN') { %>
+          <a href="/admin/mentores">Aprovações</a>
+        <% } %>
+        <div class="nav-user">
+          <div class="user-chip">
+            <%- include('avatar', { name: user.name, size: 'sm' }) %>
+            <span class="user-name"><%= user.name %></span>
+            <span class="role-badge role-<%= user.role.toLowerCase() %>"><%= user.role %></span>
+          </div>
+          <a href="/logout" class="btn-logout">Sair</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <% } %>
+
+  <main class="container">
+    <% if (typeof flash !== 'undefined' && flash) { %>
+      <div class="alert alert-<%= flash.type %>" data-auto-dismiss>
+        <span class="alert-icon"><%= flash.type === 'sucesso' ? '✓' : '!' %></span>
+        <span><%= flash.message %></span>
+      </div>
+    <% } %>

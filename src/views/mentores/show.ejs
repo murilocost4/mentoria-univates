@@ -1,0 +1,106 @@
+<% const title = mentor.name; %>
+<%- include('../partials/page-start', { title }) %>
+
+<a href="/mentores" class="back-link">← Voltar para busca</a>
+
+<div class="detail-grid">
+  <div>
+    <div class="panel">
+      <div class="detail-hero">
+        <%- include('../partials/avatar', { name: mentor.name, size: 'lg' }) %>
+        <div>
+          <h1><%= mentor.name %></h1>
+          <p class="subtitle"><%= mentor.course || 'Curso não informado' %></p>
+          <div class="rating <%= mentor.review_count === 0 ? 'rating-muted' : '' %>" style="margin-top:0.5rem">
+            <% if (mentor.review_count > 0) { %>
+              ★ <%= mentor.average_rating.toFixed(1) %> · <%= mentor.review_count %> avaliações
+            <% } else { %>
+              Ainda sem avaliações
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="panel-title">Disciplinas</h3>
+      <div class="tags" style="margin-bottom:1.5rem">
+        <% (mentor.disciplines || []).forEach(d => { %>
+          <span class="tag"><%= d %></span>
+        <% }) %>
+      </div>
+
+      <h3 class="panel-title">Disponibilidade</h3>
+      <% const avail = Object.entries(mentor.availability || {}); %>
+      <% if (avail.length === 0) { %>
+        <p class="text-muted">Horários não informados.</p>
+      <% } else { %>
+        <ul class="availability-list">
+          <% avail.forEach(([day, slots]) => { %>
+            <li>
+              <span class="day-label"><%= day %></span>
+              <span><%= slots.join(' · ') %></span>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+
+      <% if (reviews.length > 0) { %>
+        <h3 class="panel-title" style="margin-top:1.5rem">Avaliações recentes</h3>
+        <div class="review-list">
+          <% reviews.forEach(r => { %>
+            <div class="review">
+              <div class="review-header">
+                <span class="rating">★ <%= r.rating %></span>
+                <strong style="font-size:0.875rem"><%= r.student_name %></strong>
+              </div>
+              <% if (r.comment) { %><p class="review-comment"><%= r.comment %></p><% } %>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <% if (minhasSolicitacoes.length > 0) { %>
+      <div class="panel" style="margin-top:1.5rem">
+        <h3 class="panel-title">Suas solicitações</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Disciplina</th><th>Status</th><th>Data</th></tr></thead>
+            <tbody>
+              <% minhasSolicitacoes.forEach(s => { %>
+                <tr>
+                  <td><%= s.discipline %></td>
+                  <td><span class="status-badge status-<%= s.status.toLowerCase() %>"><%= s.status %></span></td>
+                  <td class="text-muted" style="font-size:0.85rem"><%= s.created_at %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="sticky-side">
+    <div class="panel">
+      <h3 class="panel-title">Solicitar mentoria</h3>
+      <form method="POST" action="/mentores/<%= mentor.user_id %>/solicitar" class="form">
+        <div class="form-group">
+          <label for="discipline">Disciplina</label>
+          <select id="discipline" name="discipline" required>
+            <option value="">Selecione uma disciplina...</option>
+            <% mentor.disciplines.forEach(d => { %>
+              <option value="<%= d %>"><%= d %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="message">Mensagem para o mentor</label>
+          <textarea id="message" name="message" rows="4" placeholder="Conte brevemente o que você precisa..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Enviar solicitação</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/page-end') %>

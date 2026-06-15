@@ -1,0 +1,50 @@
+<% const title = 'Admin — Mentores Pendentes'; %>
+<%- include('../partials/page-start', { title }) %>
+
+<div class="page-header">
+  <h1>Aprovação de mentores</h1>
+  <p>Revise e aprove cadastros de novos mentores para liberá-los na busca.</p>
+</div>
+
+<% if (mentores.length === 0) { %>
+  <div class="empty-state panel">
+    <div class="empty-icon">✅</div>
+    <h3>Tudo em dia!</h3>
+    <p>Não há mentores aguardando aprovação no momento.</p>
+  </div>
+<% } else { %>
+  <% mentores.forEach(m => { %>
+    <article class="admin-card">
+      <div class="admin-card-header">
+        <div style="display:flex;align-items:center;gap:1rem">
+          <%- include('../partials/avatar', { name: m.name }) %>
+          <div>
+            <h3 style="margin-bottom:0.2rem"><%= m.name %></h3>
+            <p class="text-muted" style="font-size:0.85rem"><%= m.email %></p>
+            <p class="text-secondary" style="font-size:0.875rem;margin-top:0.35rem"><%= m.course || 'Curso não informado' %></p>
+          </div>
+        </div>
+        <span class="status-badge status-pendente_aprovacao">Pendente</span>
+      </div>
+
+      <% if (m.disciplines.length) { %>
+        <div class="tags" style="margin:1rem 0">
+          <% m.disciplines.forEach(d => { %>
+            <span class="tag"><%= d %></span>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <div class="btn-group">
+        <form method="POST" action="/admin/mentores/<%= m.user_id %>/aprovar" class="inline-form">
+          <button type="submit" class="btn btn-primary">Aprovar mentor</button>
+        </form>
+        <form method="POST" action="/admin/mentores/<%= m.user_id %>/reprovar" class="inline-form">
+          <button type="submit" class="btn btn-danger" data-confirm="Reprovar este cadastro de mentor?">Reprovar</button>
+        </form>
+      </div>
+    </article>
+  <% }) %>
+<% } %>
+
+<%- include('../partials/page-end') %>

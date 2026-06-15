@@ -1,0 +1,64 @@
+<% const title = 'Agendar Mentoria'; %>
+<%- include('../partials/page-start', { title }) %>
+
+<a href="/mentor/solicitacoes" class="back-link">← Voltar às solicitações</a>
+
+<div class="page-header">
+  <h1>Agendar mentoria</h1>
+  <p>Defina data, horário e formato da sessão com <strong><%= mentorship.student_name %></strong> · <%= mentorship.discipline %></p>
+</div>
+
+<div class="panel" style="max-width:560px">
+  <% if (erro) { %>
+    <div class="alert alert-erro">
+      <span class="alert-icon">!</span>
+      <span><%= erro %></span>
+    </div>
+  <% } %>
+
+  <form method="POST" action="/mentorias/<%= mentorship.id %>/agendar" class="form">
+    <div class="form-group">
+      <label for="scheduled_at">Data e hora</label>
+      <input type="datetime-local" id="scheduled_at" name="scheduled_at"
+        value="<%= mentorship.scheduled_at ? mentorship.scheduled_at.replace(' ', 'T').slice(0,16) : '' %>" required>
+    </div>
+
+    <div class="form-group">
+      <label>Formato da mentoria</label>
+      <div class="type-selector">
+        <div class="type-option">
+          <input type="radio" name="type" id="type-online" value="ONLINE"
+            <%= (!mentorship.type || mentorship.type === 'ONLINE') ? 'checked' : '' %> required>
+          <label for="type-online">
+            <span class="type-icon">💻</span>
+            <span>Online</span>
+            <small class="text-muted" style="font-weight:400">Google Meet</small>
+          </label>
+        </div>
+        <div class="type-option">
+          <input type="radio" name="type" id="type-presencial" value="PRESENCIAL"
+            <%= mentorship.type === 'PRESENCIAL' ? 'checked' : '' %>>
+          <label for="type-presencial">
+            <span class="type-icon">📍</span>
+            <span>Presencial</span>
+            <small class="text-muted" style="font-weight:400">No campus</small>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group conditional-fields" id="online-fields">
+      <label for="meeting_link">Link da reunião</label>
+      <input type="url" id="meeting_link" name="meeting_link" value="<%= mentorship.meeting_link || '' %>" placeholder="https://meet.google.com/abc-defg-hij">
+    </div>
+
+    <div class="form-group conditional-fields hidden" id="presencial-fields">
+      <label for="location">Local</label>
+      <input type="text" id="location" name="location" value="<%= mentorship.location || '' %>" placeholder="Ex: Sala 204, Bloco A">
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Confirmar agendamento</button>
+  </form>
+</div>
+
+<%- include('../partials/page-end') %>

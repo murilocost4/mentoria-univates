@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Mentoria Univates</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+  <aside class="login-brand">
+    <div class="login-brand-content">
+      <h1>Conecte-se com mentores da Univates</h1>
+      <p>Encontre orientação acadêmica, agende mentorias e evolua nas disciplinas que mais importam para você.</p>
+      <div class="login-features">
+        <div class="login-feature">
+          <span class="login-feature-icon">🎓</span>
+          <span>Mentores aprovados por disciplina e curso</span>
+        </div>
+        <div class="login-feature">
+          <span class="login-feature-icon">📅</span>
+          <span>Agendamento online ou presencial</span>
+        </div>
+        <div class="login-feature">
+          <span class="login-feature-icon">⭐</span>
+          <span>Avaliações para escolher o melhor mentor</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="login-form-side">
+    <main class="login-container">
+      <h2>Bem-vindo</h2>
+      <p class="subtitle">Entre com seu e-mail institucional</p>
+
+      <% if (erro) { %>
+        <div class="alert alert-erro">
+          <span class="alert-icon">!</span>
+          <span><%= erro %></span>
+        </div>
+      <% } %>
+
+      <form method="POST" action="/login" class="form">
+        <div class="form-group">
+          <label for="email">E-mail institucional</label>
+          <input type="email" id="email" name="email" value="<%= email %>" placeholder="nome@universo.univates.br" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="name">Nome completo</label>
+          <input type="text" id="name" name="name" placeholder="Opcional no primeiro acesso">
+          <p class="form-hint">Preencha na primeira vez para personalizar seu perfil.</p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar na plataforma</button>
+      </form>
+
+      <p class="hint">Acesso restrito a contas <strong>@universo.univates.br</strong></p>
+    </main>
+  </div>
+</body>
+</html>

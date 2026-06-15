@@ -1,0 +1,64 @@
+<% const title = 'Perfil Mentor'; %>
+<%- include('../partials/page-start', { title }) %>
+
+<div class="page-header flex-between">
+  <div>
+    <h1>Perfil de Mentor</h1>
+    <p>Configure suas disciplinas e horários de disponibilidade.</p>
+  </div>
+  <% if (profile) { %>
+    <span class="status-badge status-<%= profile.status.toLowerCase() %>">
+      <%= profile.status.replace(/_/g, ' ') %>
+    </span>
+  <% } %>
+</div>
+
+<div class="panel">
+  <form method="POST" action="/mentor/perfil" class="form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="course">Curso</label>
+        <input type="text" id="course" name="course" value="<%= profile?.course || '' %>" placeholder="Ex: Ciência da Computação">
+      </div>
+      <div class="form-group">
+        <label for="disciplines">Disciplinas de domínio</label>
+        <input type="text" id="disciplines" name="disciplines" value="<%= (profile?.disciplines || []).join(', ') %>" placeholder="Algoritmos, POO, Banco de Dados">
+        <p class="form-hint">Separe por vírgula.</p>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>Disponibilidade semanal</legend>
+      <p class="form-hint" style="margin-bottom:1rem">Informe os horários de cada dia, separados por vírgula (ex: 14:00-16:00, 18:00-20:00).</p>
+      <div class="availability-grid">
+        <% const days = [
+          { key: 'segunda', label: 'Segunda-feira' },
+          { key: 'terca', label: 'Terça-feira' },
+          { key: 'quarta', label: 'Quarta-feira' },
+          { key: 'quinta', label: 'Quinta-feira' },
+          { key: 'sexta', label: 'Sexta-feira' },
+          { key: 'sabado', label: 'Sábado' },
+        ]; %>
+        <% days.forEach(day => { %>
+          <div class="form-group" style="margin-bottom:0">
+            <label for="avail_<%= day.key %>"><%= day.label %></label>
+            <input type="text" id="avail_<%= day.key %>" name="avail_<%= day.key %>"
+              value="<%= (profile?.availability?.[day.key] || []).join(', ') %>"
+              placeholder="14:00-16:00">
+          </div>
+        <% }) %>
+      </div>
+    </fieldset>
+
+    <% if (profile?.status === 'PENDENTE_APROVACAO') { %>
+      <div class="alert alert-erro" style="background:var(--warning-bg);color:#92400e;border-color:#fde68a">
+        <span class="alert-icon">⏳</span>
+        <span>Seu perfil está aguardando aprovação do administrador. Você só aparecerá na busca após a aprovação.</span>
+      </div>
+    <% } %>
+
+    <button type="submit" class="btn btn-primary">Salvar perfil</button>
+  </form>
+</div>
+
+<%- include('../partials/page-end') %>

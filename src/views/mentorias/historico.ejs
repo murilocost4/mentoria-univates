@@ -1,0 +1,45 @@
+<% const title = 'Histórico'; %>
+<%- include('../partials/page-start', { title }) %>
+
+<div class="page-header flex-between">
+  <div>
+    <h1>Histórico de mentorias</h1>
+    <p>Acompanhe sessões futuras, passadas e pendências.</p>
+  </div>
+  <form method="GET" action="/historico" class="form" style="margin:0">
+    <select id="status" name="status" onchange="this.form.submit()" style="width:auto;min-width:160px">
+      <option value="">Todos os status</option>
+      <% ['ACEITA','AGENDADA','CANCELADA','CONCLUIDA'].forEach(s => { %>
+        <option value="<%= s %>" <%= statusFilter === s ? 'selected' : '' %>><%= s %></option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+
+<h2 class="section-title">
+  Próximas sessões
+  <span class="section-count"><%= futuras.length %></span>
+</h2>
+
+<% if (futuras.length === 0) { %>
+  <div class="empty-state panel" style="padding:2rem">
+    <p class="text-muted">Nenhuma mentoria futura agendada.</p>
+  </div>
+<% } else { %>
+  <% futuras.forEach(m => { %><%- include('../partials/mentoria-card', { m, reviewsMap }) %><% }) %>
+<% } %>
+
+<h2 class="section-title">
+  Anteriores e outras
+  <span class="section-count"><%= passadas.length %></span>
+</h2>
+
+<% if (passadas.length === 0) { %>
+  <div class="empty-state panel" style="padding:2rem">
+    <p class="text-muted">Nenhum registro encontrado.</p>
+  </div>
+<% } else { %>
+  <% passadas.forEach(m => { %><%- include('../partials/mentoria-card', { m, reviewsMap }) %><% }) %>
+<% } %>
+
+<%- include('../partials/page-end') %>

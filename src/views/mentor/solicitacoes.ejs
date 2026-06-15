@@ -1,0 +1,51 @@
+<% const title = 'Solicitações'; %>
+<%- include('../partials/page-start', { title }) %>
+
+<div class="page-header">
+  <h1>Solicitações recebidas</h1>
+  <p>Aceite ou recuse pedidos de mentoria dos alunos.</p>
+</div>
+
+<% if (solicitacoes.length === 0) { %>
+  <div class="empty-state panel">
+    <div class="empty-icon">📬</div>
+    <h3>Nenhuma solicitação</h3>
+    <p>Quando um aluno solicitar mentoria, ela aparecerá aqui.</p>
+  </div>
+<% } else { %>
+  <div class="request-cards">
+    <% solicitacoes.forEach(s => { %>
+      <article class="request-card">
+        <div class="request-card-header">
+          <div style="display:flex;align-items:center;gap:0.75rem">
+            <%- include('../partials/avatar', { name: s.student_name }) %>
+            <div>
+              <h3><%= s.student_name %></h3>
+              <span class="tag"><%= s.discipline %></span>
+            </div>
+          </div>
+          <span class="status-badge status-<%= s.status.toLowerCase() %>"><%= s.status %></span>
+        </div>
+
+        <% if (s.message) { %>
+          <div class="request-message">"<%= s.message %>"</div>
+        <% } %>
+
+        <p class="request-meta">Recebida em <%= s.created_at %></p>
+
+        <% if (s.status === 'PENDENTE') { %>
+          <div class="btn-group" style="margin-top:1rem">
+            <form method="POST" action="/mentor/solicitacoes/<%= s.id %>/aceitar" class="inline-form">
+              <button type="submit" class="btn btn-primary">Aceitar solicitação</button>
+            </form>
+            <form method="POST" action="/mentor/solicitacoes/<%= s.id %>/recusar" class="inline-form">
+              <button type="submit" class="btn btn-danger" data-confirm="Tem certeza que deseja recusar esta solicitação?">Recusar</button>
+            </form>
+          </div>
+        <% } %>
+      </article>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/page-end') %>

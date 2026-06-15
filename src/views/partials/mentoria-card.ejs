@@ -1,0 +1,85 @@
+<article class="card mentorship-card">
+  <div class="flex-between">
+    <div>
+      <h3 style="margin-bottom:0.25rem"><%= m.discipline %></h3>
+      <p class="text-secondary" style="font-size:0.875rem">
+        <% if (user.role === 'ALUNO') { %>
+          com <strong><%= m.mentor_name %></strong>
+        <% } else { %>
+          com <strong><%= m.student_name %></strong>
+        <% } %>
+      </p>
+    </div>
+    <span class="status-badge status-<%= m.status.toLowerCase() %>"><%= m.status %></span>
+  </div>
+
+  <div class="mentorship-meta">
+    <% if (m.scheduled_at) { %>
+      <div class="meta-item">
+        <span class="meta-label">Data e hora</span>
+        <span class="meta-value"><%= m.scheduled_at %></span>
+      </div>
+    <% } %>
+    <% if (m.type) { %>
+      <div class="meta-item">
+        <span class="meta-label">Formato</span>
+        <span class="meta-value"><%= m.type === 'ONLINE' ? '💻 Online' : '📍 Presencial' %></span>
+      </div>
+    <% } %>
+    <% if (m.type === 'ONLINE' && m.meeting_link) { %>
+      <div class="meta-item">
+        <span class="meta-label">Link da reunião</span>
+        <span class="meta-value"><a href="<%= m.meeting_link %>" target="_blank" rel="noopener">Acessar reunião →</a></span>
+      </div>
+    <% } %>
+    <% if (m.type === 'PRESENCIAL' && m.location) { %>
+      <div class="meta-item">
+        <span class="meta-label">Local</span>
+        <span class="meta-value"><%= m.location %></span>
+      </div>
+    <% } %>
+    <% if (m.cancel_reason) { %>
+      <div class="meta-item">
+        <span class="meta-label">Motivo do cancelamento</span>
+        <span class="meta-value"><%= m.cancel_reason %></span>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="actions">
+    <% if (user.role === 'MENTOR' && ['ACEITA','AGENDADA'].includes(m.status)) { %>
+      <% if (m.status === 'ACEITA') { %>
+        <a href="/mentorias/<%= m.id %>/agendar" class="btn btn-sm btn-primary">Agendar sessão</a>
+      <% } %>
+      <% if (m.status === 'AGENDADA') { %>
+        <form method="POST" action="/mentorias/<%= m.id %>/concluir" class="inline-form">
+          <button type="submit" class="btn btn-sm btn-primary">Marcar como concluída</button>
+        </form>
+      <% } %>
+    <% } %>
+
+    <% if (['ACEITA','AGENDADA'].includes(m.status)) { %>
+      <form method="POST" action="/mentorias/<%= m.id %>/cancelar" class="inline-form cancel-form">
+        <input type="text" name="cancel_reason" placeholder="Motivo (opcional)" class="input-sm">
+        <button type="submit" class="btn btn-sm btn-danger" data-confirm="Confirmar cancelamento desta mentoria?">Cancelar</button>
+      </form>
+    <% } %>
+
+    <% if (user.role === 'ALUNO' && m.status === 'CONCLUIDA' && !reviewsMap[m.id]) { %>
+      <form method="POST" action="/mentorias/<%= m.id %>/avaliar" class="inline-form review-form">
+        <select name="rating" required class="input-sm">
+          <option value="">Avaliar...</option>
+          <% for (let i = 5; i >= 1; i--) { %>
+            <option value="<%= i %>"><%= '★'.repeat(i) %> (<%= i %>)</option>
+          <% } %>
+        </select>
+        <input type="text" name="comment" placeholder="Comentário opcional" class="input-sm">
+        <button type="submit" class="btn btn-sm btn-secondary">Enviar avaliação</button>
+      </form>
+    <% } %>
+
+    <% if (reviewsMap[m.id]) { %>
+      <p class="review-done">✓ Você avaliou com <%= reviewsMap[m.id].rating %> estrelas</p>
+    <% } %>
+  </div>
+</article>
