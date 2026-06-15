@@ -1,24 +1,24 @@
 const db = require('../config/database');
 
-function create({ mentorshipId, studentId, mentorId, rating, comment }) {
-  db.prepare(`
+async function create({ mentorshipId, studentId, mentorId, rating, comment }) {
+  await db.run(`
     INSERT INTO reviews (mentorship_id, student_id, mentor_id, rating, comment)
     VALUES (?, ?, ?, ?, ?)
-  `).run(mentorshipId, studentId, mentorId, rating, comment || null);
+  `, [mentorshipId, studentId, mentorId, rating, comment || null]);
 }
 
-function findByMentorship(mentorshipId) {
-  return db.prepare('SELECT * FROM reviews WHERE mentorship_id = ?').get(mentorshipId);
+async function findByMentorship(mentorshipId) {
+  return db.queryOne('SELECT * FROM reviews WHERE mentorship_id = ?', [mentorshipId]);
 }
 
-function findByMentor(mentorId) {
-  return db.prepare(`
+async function findByMentor(mentorId) {
+  return db.queryAll(`
     SELECT r.*, s.name as student_name
     FROM reviews r
     JOIN users s ON s.id = r.student_id
     WHERE r.mentor_id = ?
     ORDER BY r.created_at DESC
-  `).all(mentorId);
+  `, [mentorId]);
 }
 
 module.exports = { create, findByMentorship, findByMentor };

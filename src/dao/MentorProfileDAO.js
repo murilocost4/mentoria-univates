@@ -10,36 +10,36 @@ function mapProfile(row) {
   };
 }
 
-function findByUserId(userId) {
-  return mapProfile(db.prepare('SELECT * FROM mentor_profiles WHERE user_id = ?').get(userId));
+async function findByUserId(userId) {
+  return mapProfile(await db.queryOne('SELECT * FROM mentor_profiles WHERE user_id = ?', [userId]));
 }
 
-function create(userId) {
-  db.prepare(`
+async function create(userId) {
+  await db.run(`
     INSERT INTO mentor_profiles (user_id, status) VALUES (?, 'PENDENTE_APROVACAO')
-  `).run(userId);
+  `, [userId]);
 }
 
-function upsert(userId, data) {
-  const existing = findByUserId(userId);
+async function upsert(userId, data) {
+  const existing = await findByUserId(userId);
   const disciplines = JSON.stringify(data.disciplines || []);
   const availability = JSON.stringify(data.availability || {});
 
   if (existing) {
-    db.prepare(`
+    await db.run(`
       UPDATE mentor_profiles
       SET course = ?, disciplines = ?, availability = ?
       WHERE user_id = ?
-    `).run(data.course || null, disciplines, availability, userId);
+    `, [data.course || null, disciplines, availability, userId]);
   } else {
-    db.prepare(`
+    await db.run(`
       INSERT INTO mentor_profiles (user_id, course, disciplines, availability, status)
       VALUES (?, ?, ?, ?, 'PENDENTE_APROVACAO')
-    `).run(userId, data.course || null, disciplines, availability);
+    `, [userId, data.course || null, disciplines, availability]);
   }
 }
 
-function searchApproved(filters = {}) {
+async function searchApproved(filters = {}) {
   let sql = `
     SELECT mp.*, u.name, u.email
     FROM mentor_profiles mp
@@ -62,56 +62,58 @@ function searchApproved(filters = {}) {
   }
 
   sql += ' ORDER BY u.name ASC';
-  return db.prepare(sql).all(...params).map(mapProfile);
+  const rows = await db.queryAll(sql, params);
+  return rows.map(mapProfile);
 }
 
-function findApprovedById(userId) {
-  const row = db.prepare(`
+async function findApprovedById(userId) {
+  const row = await db.queryOne(`
     SELECT mp.*, u.name, u.email
     FROM mentor_profiles mp
     JOIN users u ON u.id = mp.user_id
     WHERE mp.user_id = ? AND mp.status = 'APROVADO'
-  `).get(userId);
+  `, [userId]);
   return mapProfile(row);
 }
 
-function findPending() {
-  return db.prepare(`
+async function findPending() {
+  const rows = await db.queryAll(`
     SELECT mp.*, u.name, u.email
     FROM mentor_profiles mp
     JOIN users u ON u.id = mp.user_id
     WHERE mp.status = 'PENDENTE_APROVACAO'
     ORDER BY u.name ASC
-  `).all().map(mapProfile);
+  `);
+  return rows.map(mapProfile);
 }
 
-function approve(userId, adminId) {
-  db.prepare(`
+async function approve(userId, adminId) {
+  await db.run(`
     UPDATE mentor_profiles
     SET status = 'APROVADO', approved_by = ?, approved_at = datetime('now')
     WHERE user_id = ?
-  `).run(adminId, userId);
+  `, [adminId, userId]);
 }
 
-function reject(userId, adminId) {
-  db.prepare(`
+async function reject(userId, adminId) {
+  await db.run(`
     UPDATE mentor_profiles
     SET status = 'REPROVADO', approved_by = ?, approved_at = datetime('now')
     WHERE user_id = ?
-  `).run(adminId, userId);
+  `, [adminId, userId]);
 }
 
-function updateRating(userId) {
-  const stats = db.prepare(`
+async function updateRating(userId) {
+  const stats = await db.queryOne(`
     SELECT AVG(rating) as avg_rating, COUNT(*) as count
     FROM reviews WHERE mentor_id = ?
-  `).get(userId);
+  `, [userId]);
 
-  db.prepare(`
+  await db.run(`
     UPDATE mentor_profiles
     SET average_rating = ?, review_count = ?
     WHERE user_id = ?
-  `).run(stats.avg_rating || 0, stats.count || 0, userId);
+  `, [stats?.avg_rating || 0, stats?.count || 0, userId]);
 }
 
 module.exports = {

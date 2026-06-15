@@ -11,9 +11,9 @@ function canAccess(mentorship, userId, role) {
   return mentorship.student_id === userId;
 }
 
-function showAgendar(req, res) {
+async function showAgendar(req, res) {
   const id = Number(req.params.id);
-  const mentorship = MentorshipDAO.findById(id);
+  const mentorship = await MentorshipDAO.findById(id);
 
   if (!mentorship || !canAccess(mentorship, req.session.userId, req.session.role)) {
     setFlash(req, 'erro', 'Mentoria não encontrada.');
@@ -35,7 +35,7 @@ function showAgendar(req, res) {
 
 async function saveAgendar(req, res) {
   const id = Number(req.params.id);
-  const mentorship = MentorshipDAO.findById(id);
+  const mentorship = await MentorshipDAO.findById(id);
 
   if (!mentorship || mentorship.mentor_id !== req.session.userId) {
     setFlash(req, 'erro', 'Mentoria não encontrada.');
@@ -58,14 +58,14 @@ async function saveAgendar(req, res) {
     return res.render('mentorias/agendar', { mentorship, erro });
   }
 
-  MentorshipDAO.schedule(id, {
+  await MentorshipDAO.schedule(id, {
     scheduledAt,
     type,
     meetingLink: meeting_link?.trim() || null,
     location: location?.trim() || null,
   });
 
-  const updated = MentorshipDAO.findById(id);
+  const updated = await MentorshipDAO.findById(id);
   await emailService.notifyScheduled(
     updated.student_email,
     updated.mentor_email,
@@ -78,7 +78,7 @@ async function saveAgendar(req, res) {
 
 async function cancelar(req, res) {
   const id = Number(req.params.id);
-  const mentorship = MentorshipDAO.findById(id);
+  const mentorship = await MentorshipDAO.findById(id);
 
   if (!mentorship || !canAccess(mentorship, req.session.userId, req.session.role)) {
     setFlash(req, 'erro', 'Mentoria não encontrada.');
@@ -91,13 +91,13 @@ async function cancelar(req, res) {
   }
 
   const { cancel_reason } = req.body;
-  MentorshipDAO.cancel(id, {
+  await MentorshipDAO.cancel(id, {
     cancelledBy: req.session.userId,
     cancelReason: cancel_reason?.trim() || null,
   });
 
-  const updated = MentorshipDAO.findById(id);
-  const cancelledByUser = UserDAO.findById(req.session.userId);
+  const updated = await MentorshipDAO.findById(id);
+  const cancelledByUser = await UserDAO.findById(req.session.userId);
   await emailService.notifyCancelled(
     updated.student_email,
     updated.mentor_email,
@@ -111,7 +111,7 @@ async function cancelar(req, res) {
 
 async function concluir(req, res) {
   const id = Number(req.params.id);
-  const mentorship = MentorshipDAO.findById(id);
+  const mentorship = await MentorshipDAO.findById(id);
 
   if (!mentorship || mentorship.mentor_id !== req.session.userId) {
     setFlash(req, 'erro', 'Mentoria não encontrada.');
@@ -123,7 +123,7 @@ async function concluir(req, res) {
     return res.redirect('/historico');
   }
 
-  MentorshipDAO.complete(id);
+  await MentorshipDAO.complete(id);
 
   await emailService.notifyReviewRequest(mentorship.student_email, id);
 
@@ -131,9 +131,9 @@ async function concluir(req, res) {
   res.redirect('/historico');
 }
 
-function historico(req, res) {
+async function historico(req, res) {
   const statusFilter = req.query.status || '';
-  const mentorias = MentorshipDAO.findByUser(
+  const mentorias = await MentorshipDAO.findByUser(
     req.session.userId,
     req.session.role,
     statusFilter || null
@@ -148,7 +148,7 @@ function historico(req, res) {
   const reviewsMap = {};
   for (const m of mentorias) {
     if (m.status === 'CONCLUIDA') {
-      reviewsMap[m.id] = ReviewDAO.findByMentorship(m.id);
+      reviewsMap[m.id] = await ReviewDAO.findByMentorship(m.id);
     }
   }
 
@@ -162,7 +162,7 @@ function historico(req, res) {
 
 async function avaliar(req, res) {
   const id = Number(req.params.id);
-  const mentorship = MentorshipDAO.findById(id);
+  const mentorship = await MentorshipDAO.findById(id);
 
   if (!mentorship || mentorship.student_id !== req.session.userId) {
     setFlash(req, 'erro', 'Mentoria não encontrada.');
@@ -174,7 +174,7 @@ async function avaliar(req, res) {
     return res.redirect('/historico');
   }
 
-  const existing = ReviewDAO.findByMentorship(id);
+  const existing = await ReviewDAO.findByMentorship(id);
   if (existing) {
     setFlash(req, 'erro', 'Você já avaliou esta mentoria.');
     return res.redirect('/historico');
@@ -186,7 +186,7 @@ async function avaliar(req, res) {
     return res.redirect('/historico');
   }
 
-  ReviewDAO.create({
+  await ReviewDAO.create({
     mentorshipId: id,
     studentId: req.session.userId,
     mentorId: mentorship.mentor_id,
@@ -194,7 +194,7 @@ async function avaliar(req, res) {
     comment: req.body.comment?.trim() || null,
   });
 
-  MentorProfileDAO.updateRating(mentorship.mentor_id);
+  await MentorProfileDAO.updateRating(mentorship.mentor_id);
 
   setFlash(req, 'sucesso', 'Avaliação registrada. Obrigado!');
   res.redirect('/historico');

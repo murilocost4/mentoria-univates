@@ -4,27 +4,27 @@ const MentorshipRequestDAO = require('../dao/MentorshipRequestDAO');
 const { setFlash } = require('../middleware/auth');
 const emailService = require('../services/email');
 
-function list(req, res) {
+async function list(req, res) {
   const filters = {
     disciplina: req.query.disciplina || '',
     curso: req.query.curso || '',
     disponibilidade: req.query.disponibilidade || '',
   };
-  const mentores = MentorProfileDAO.searchApproved(filters);
+  const mentores = await MentorProfileDAO.searchApproved(filters);
   res.render('mentores/index', { mentores, filters });
 }
 
-function show(req, res) {
+async function show(req, res) {
   const mentorId = Number(req.params.id);
-  const mentor = MentorProfileDAO.findApprovedById(mentorId);
+  const mentor = await MentorProfileDAO.findApprovedById(mentorId);
 
   if (!mentor) {
     setFlash(req, 'erro', 'Mentor não encontrado.');
     return res.redirect('/mentores');
   }
 
-  const reviews = ReviewDAO.findByMentor(mentorId);
-  const minhasSolicitacoes = MentorshipRequestDAO.findByStudent(req.session.userId)
+  const reviews = await ReviewDAO.findByMentor(mentorId);
+  const minhasSolicitacoes = (await MentorshipRequestDAO.findByStudent(req.session.userId))
     .filter((s) => s.mentor_id === mentorId);
 
   res.render('mentores/show', { mentor, reviews, minhasSolicitacoes });
@@ -32,7 +32,7 @@ function show(req, res) {
 
 async function solicitar(req, res) {
   const mentorId = Number(req.params.id);
-  const mentor = MentorProfileDAO.findApprovedById(mentorId);
+  const mentor = await MentorProfileDAO.findApprovedById(mentorId);
 
   if (!mentor) {
     setFlash(req, 'erro', 'Mentor não encontrado ou não aprovado.');
@@ -46,7 +46,7 @@ async function solicitar(req, res) {
     return res.redirect(`/mentores/${mentorId}`);
   }
 
-  MentorshipRequestDAO.create({
+  await MentorshipRequestDAO.create({
     studentId: req.session.userId,
     mentorId,
     discipline,

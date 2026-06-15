@@ -3,14 +3,14 @@ const MentorshipDAO = require('../dao/MentorshipDAO');
 const { setFlash } = require('../middleware/auth');
 const emailService = require('../services/email');
 
-function listSolicitacoes(req, res) {
-  const solicitacoes = MentorshipRequestDAO.findByMentor(req.session.userId);
+async function listSolicitacoes(req, res) {
+  const solicitacoes = await MentorshipRequestDAO.findByMentor(req.session.userId);
   res.render('mentor/solicitacoes', { solicitacoes });
 }
 
 async function aceitar(req, res) {
   const id = Number(req.params.id);
-  const solicitacao = MentorshipRequestDAO.findById(id);
+  const solicitacao = await MentorshipRequestDAO.findById(id);
 
   if (!solicitacao || solicitacao.mentor_id !== req.session.userId) {
     setFlash(req, 'erro', 'Solicitação não encontrada.');
@@ -22,8 +22,8 @@ async function aceitar(req, res) {
     return res.redirect('/mentor/solicitacoes');
   }
 
-  MentorshipRequestDAO.updateStatus(id, 'ACEITA');
-  const mentorshipId = MentorshipDAO.create(id);
+  await MentorshipRequestDAO.updateStatus(id, 'ACEITA');
+  const mentorshipId = await MentorshipDAO.create(id);
 
   await emailService.notifyRequestDecision(
     solicitacao.student_email,
@@ -37,7 +37,7 @@ async function aceitar(req, res) {
 
 async function recusar(req, res) {
   const id = Number(req.params.id);
-  const solicitacao = MentorshipRequestDAO.findById(id);
+  const solicitacao = await MentorshipRequestDAO.findById(id);
 
   if (!solicitacao || solicitacao.mentor_id !== req.session.userId) {
     setFlash(req, 'erro', 'Solicitação não encontrada.');
@@ -49,7 +49,7 @@ async function recusar(req, res) {
     return res.redirect('/mentor/solicitacoes');
   }
 
-  MentorshipRequestDAO.updateStatus(id, 'RECUSADA');
+  await MentorshipRequestDAO.updateStatus(id, 'RECUSADA');
 
   await emailService.notifyRequestDecision(
     solicitacao.student_email,

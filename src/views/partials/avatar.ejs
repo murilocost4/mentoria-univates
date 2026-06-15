@@ -1,6 +1,7 @@
 <%
   const initials = (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  const sizeClass = size === 'lg' ? 'avatar-lg' : (size === 'sm' ? 'avatar-sm' : '');
+  const avatarSize = typeof size !== 'undefined' ? size : '';
+  const sizeClass = avatarSize === 'lg' ? 'avatar-lg' : (avatarSize === 'sm' ? 'avatar-sm' : '');
 %>
 <div class="avatar <%= sizeClass %>">
   <% if (typeof photo !== 'undefined' && photo) { %>

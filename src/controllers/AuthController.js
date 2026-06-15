@@ -1,4 +1,3 @@
-const db = require('../config/database');
 const { loginUser } = require('../services/auth');
 const { setFlash } = require('../middleware/auth');
 
@@ -6,9 +5,9 @@ function showLogin(req, res) {
   res.render('auth/login', { erro: null, email: '' });
 }
 
-function doLogin(req, res) {
+async function doLogin(req, res) {
   const { email, name } = req.body;
-  const result = loginUser(db, email, name);
+  const result = await loginUser(email, name);
 
   if (result.error) {
     return res.render('auth/login', { erro: result.error, email: email || '' });

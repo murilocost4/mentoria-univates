@@ -1,16 +1,19 @@
 # Sistema de Mentoria Univates
 
-Sistema de mentoria acadêmica com Node.js, Express, EJS e SQLite.
+Sistema de mentoria acadêmica com Node.js, Express, EJS e **Turso** (SQLite remoto).
 
 ## Requisitos
 
 - Node.js 18+
+- Conta no [Turso](https://turso.tech) (produção/Vercel)
 
 ## Instalação
 
 ```bash
 npm install
 cp .env.example .env
+# Configure TURSO_DATABASE_URL e TURSO_AUTH_TOKEN no .env
+npm run db:init   # cria tabelas + dados de teste (1ª vez)
 npm start
 ```
 
@@ -21,6 +24,42 @@ Modo desenvolvimento com reload automático:
 ```bash
 npm run dev
 ```
+
+## Banco de dados (Turso)
+
+O projeto usa [`@libsql/client`](https://github.com/tursodatabase/libsql-client-js) para conectar ao Turso.
+
+### 1. Criar banco no Turso
+
+```bash
+# Instale a CLI: https://docs.turso.tech/cli
+turso db create mentoria-univates
+turso db show mentoria-univates --url
+turso db tokens create mentoria-univates
+```
+
+### 2. Configurar `.env`
+
+```env
+TURSO_DATABASE_URL=libsql://mentoria-univates-seu-usuario.turso.io
+TURSO_AUTH_TOKEN=eyJ...
+```
+
+### 3. Inicializar schema e seed
+
+```bash
+npm run db:init
+```
+
+Na primeira execução, o servidor também tenta criar as tabelas automaticamente se não existirem.
+
+### Desenvolvimento local (sem Turso)
+
+Se `TURSO_DATABASE_URL` **não** estiver definido, o app usa SQLite local em `database/app.db` automaticamente.
+
+### Vercel
+
+Adicione as variáveis `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN` em **Settings → Environment Variables** do projeto na Vercel. Rode `npm run db:init` localmente uma vez (com as mesmas credenciais) para criar as tabelas no banco remoto.
 
 ## Login (modo dev)
 
@@ -87,7 +126,7 @@ MAIL_FROM=mentoria@universo.univates.br
 ```
 src/
 ├── server.js           # Bootstrap Express
-├── config/database.js  # SQLite + init automático
+├── config/database.js  # Turso / libSQL + init automático
 ├── middleware/         # Auth e papéis
 ├── services/           # Auth e e-mail
 ├── dao/                # Acesso ao banco

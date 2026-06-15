@@ -1,14 +1,14 @@
 const db = require('../config/database');
 
-function create(requestId) {
-  const result = db.prepare(`
+async function create(requestId) {
+  const result = await db.run(`
     INSERT INTO mentorships (request_id, status) VALUES (?, 'ACEITA')
-  `).run(requestId);
+  `, [requestId]);
   return result.lastInsertRowid;
 }
 
-function findById(id) {
-  return db.prepare(`
+async function findById(id) {
+  return db.queryOne(`
     SELECT ms.*, mr.student_id, mr.mentor_id, mr.discipline, mr.message,
            s.name as student_name, s.email as student_email,
            m.name as mentor_name, m.email as mentor_email
@@ -17,42 +17,42 @@ function findById(id) {
     JOIN users s ON s.id = mr.student_id
     JOIN users m ON m.id = mr.mentor_id
     WHERE ms.id = ?
-  `).get(id);
+  `, [id]);
 }
 
-function findByRequestId(requestId) {
-  return findById(
-    db.prepare('SELECT id FROM mentorships WHERE request_id = ?').get(requestId)?.id
-  );
+async function findByRequestId(requestId) {
+  const row = await db.queryOne('SELECT id FROM mentorships WHERE request_id = ?', [requestId]);
+  if (!row) return null;
+  return findById(row.id);
 }
 
-function schedule(id, { scheduledAt, type, meetingLink, location }) {
-  db.prepare(`
+async function schedule(id, { scheduledAt, type, meetingLink, location }) {
+  await db.run(`
     UPDATE mentorships
     SET scheduled_at = ?, status = 'AGENDADA', type = ?,
         meeting_link = ?, location = ?, updated_at = datetime('now')
     WHERE id = ?
-  `).run(scheduledAt, type, meetingLink || null, location || null, id);
+  `, [scheduledAt, type, meetingLink || null, location || null, id]);
 }
 
-function cancel(id, { cancelledBy, cancelReason }) {
-  db.prepare(`
+async function cancel(id, { cancelledBy, cancelReason }) {
+  await db.run(`
     UPDATE mentorships
     SET status = 'CANCELADA', cancelled_by = ?, cancel_reason = ?,
         updated_at = datetime('now')
     WHERE id = ?
-  `).run(cancelledBy, cancelReason || null, id);
+  `, [cancelledBy, cancelReason || null, id]);
 }
 
-function complete(id) {
-  db.prepare(`
+async function complete(id) {
+  await db.run(`
     UPDATE mentorships
     SET status = 'CONCLUIDA', completed_at = datetime('now'), updated_at = datetime('now')
     WHERE id = ?
-  `).run(id);
+  `, [id]);
 }
 
-function findByUser(userId, role, statusFilter) {
+async function findByUser(userId, role, statusFilter) {
   let sql = `
     SELECT ms.*, mr.student_id, mr.mentor_id, mr.discipline, mr.message,
            s.name as student_name, m.name as mentor_name
@@ -70,7 +70,7 @@ function findByUser(userId, role, statusFilter) {
   }
 
   sql += ' ORDER BY ms.scheduled_at DESC, ms.created_at DESC';
-  return db.prepare(sql).all(...params);
+  return db.queryAll(sql, params);
 }
 
 module.exports = {

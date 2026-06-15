@@ -3,8 +3,7 @@ const path = require('path');
 const express = require('express');
 const session = require('express-session');
 
-require('./config/database');
-
+const { initDatabase } = require('./config/database');
 const { requireAuth, getFlash } = require('./middleware/auth');
 const AuthController = require('./controllers/AuthController');
 
@@ -16,7 +15,7 @@ const mentoriasRoutes = require('./routes/mentorias');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
-const PORT = process.env.PORT || 3007;
+const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -62,6 +61,25 @@ app.use(mentorRoutes);
 app.use(mentoriasRoutes);
 app.use(adminRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.use((err, req, res, _next) => {
+  console.error(err);
+  res.status(500).send('Erro interno do servidor.');
 });
+
+async function start() {
+  await initDatabase();
+  app.listen(PORT, () => {
+    const usingTurso = Boolean(process.env.TURSO_DATABASE_URL);
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Banco: ${usingTurso ? 'Turso (remoto)' : 'SQLite local (database/app.db)'}`);
+  });
+}
+
+if (require.main === module) {
+  start().catch((err) => {
+    console.error('Falha ao iniciar:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = app;

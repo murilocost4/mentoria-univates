@@ -9,25 +9,25 @@ function mapProfile(row) {
   };
 }
 
-function findByUserId(userId) {
-  return mapProfile(db.prepare('SELECT * FROM student_profiles WHERE user_id = ?').get(userId));
+async function findByUserId(userId) {
+  return mapProfile(await db.queryOne('SELECT * FROM student_profiles WHERE user_id = ?', [userId]));
 }
 
-function upsert(userId, data) {
-  const existing = findByUserId(userId);
+async function upsert(userId, data) {
+  const existing = await findByUserId(userId);
   const interests = JSON.stringify(data.interests || []);
 
   if (existing) {
-    db.prepare(`
+    await db.run(`
       UPDATE student_profiles
       SET photo_url = ?, course = ?, interests = ?
       WHERE user_id = ?
-    `).run(data.photo_url || null, data.course || null, interests, userId);
+    `, [data.photo_url || null, data.course || null, interests, userId]);
   } else {
-    db.prepare(`
+    await db.run(`
       INSERT INTO student_profiles (user_id, photo_url, course, interests)
       VALUES (?, ?, ?, ?)
-    `).run(userId, data.photo_url || null, data.course || null, interests);
+    `, [userId, data.photo_url || null, data.course || null, interests]);
   }
 }
 

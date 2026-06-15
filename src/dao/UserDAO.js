@@ -13,20 +13,20 @@ function mapUser(row) {
   return { ...row };
 }
 
-function findById(id) {
-  return mapUser(db.prepare('SELECT * FROM users WHERE id = ?').get(id));
+async function findById(id) {
+  return mapUser(await db.queryOne('SELECT * FROM users WHERE id = ?', [id]));
 }
 
-function findByEmail(email) {
-  return mapUser(db.prepare('SELECT * FROM users WHERE email = ?').get(email));
+async function findByEmail(email) {
+  return mapUser(await db.queryOne('SELECT * FROM users WHERE email = ?', [email]));
 }
 
-function updateName(id, name) {
-  db.prepare('UPDATE users SET name = ?, updated_at = datetime(\'now\') WHERE id = ?').run(name, id);
+async function updateName(id, name) {
+  await db.run("UPDATE users SET name = ?, updated_at = datetime('now') WHERE id = ?", [name, id]);
 }
 
-function updateRole(id, role) {
-  db.prepare('UPDATE users SET role = ?, updated_at = datetime(\'now\') WHERE id = ?').run(role, id);
+async function updateRole(id, role) {
+  await db.run("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?", [role, id]);
 }
 
 module.exports = { findById, findByEmail, updateName, updateRole, parseJson };

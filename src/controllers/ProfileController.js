@@ -22,13 +22,13 @@ function parseAvailability(body) {
   return availability;
 }
 
-function showStudentProfile(req, res) {
-  const profile = StudentProfileDAO.findByUserId(req.session.userId);
-  const user = UserDAO.findById(req.session.userId);
+async function showStudentProfile(req, res) {
+  const profile = await StudentProfileDAO.findByUserId(req.session.userId);
+  const user = await UserDAO.findById(req.session.userId);
   res.render('perfil/aluno', { profile, user });
 }
 
-function saveStudentProfile(req, res) {
+async function saveStudentProfile(req, res) {
   const { name, photo_url, course, interests } = req.body;
 
   if (!name || !name.trim()) {
@@ -36,10 +36,10 @@ function saveStudentProfile(req, res) {
     return res.redirect('/perfil');
   }
 
-  UserDAO.updateName(req.session.userId, name.trim());
+  await UserDAO.updateName(req.session.userId, name.trim());
   req.session.name = name.trim();
 
-  StudentProfileDAO.upsert(req.session.userId, {
+  await StudentProfileDAO.upsert(req.session.userId, {
     photo_url: photo_url?.trim() || null,
     course: course?.trim() || null,
     interests: parseTags(interests),
@@ -49,28 +49,28 @@ function saveStudentProfile(req, res) {
   res.redirect('/perfil');
 }
 
-function becomeMentor(req, res) {
-  const existing = MentorProfileDAO.findByUserId(req.session.userId);
+async function becomeMentor(req, res) {
+  const existing = await MentorProfileDAO.findByUserId(req.session.userId);
   if (!existing) {
-    MentorProfileDAO.create(req.session.userId);
+    await MentorProfileDAO.create(req.session.userId);
   }
-  UserDAO.updateRole(req.session.userId, 'MENTOR');
+  await UserDAO.updateRole(req.session.userId, 'MENTOR');
   req.session.role = 'MENTOR';
   setFlash(req, 'sucesso', 'Cadastro de mentor iniciado. Complete seu perfil e aguarde aprovação.');
   res.redirect('/mentor/perfil');
 }
 
-function showMentorProfile(req, res) {
-  const profile = MentorProfileDAO.findByUserId(req.session.userId);
-  const user = UserDAO.findById(req.session.userId);
+async function showMentorProfile(req, res) {
+  const profile = await MentorProfileDAO.findByUserId(req.session.userId);
+  const user = await UserDAO.findById(req.session.userId);
   res.render('perfil/mentor', { profile, user });
 }
 
-function saveMentorProfile(req, res) {
+async function saveMentorProfile(req, res) {
   const { course, disciplines } = req.body;
   const availability = parseAvailability(req.body);
 
-  MentorProfileDAO.upsert(req.session.userId, {
+  await MentorProfileDAO.upsert(req.session.userId, {
     course: course?.trim() || null,
     disciplines: parseTags(disciplines),
     availability,
