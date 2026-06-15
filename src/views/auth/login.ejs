@@ -50,11 +50,27 @@
           <input type="text" id="name" name="name" placeholder="Opcional no primeiro acesso">
           <p class="form-hint">Preencha na primeira vez para personalizar seu perfil.</p>
         </div>
+
+        <div class="form-group terms-group <%= requireTerms ? 'terms-required' : '' %>">
+          <label class="checkbox-label">
+            <input type="checkbox" name="accept_terms" id="accept_terms" <%= requireTerms ? 'required' : '' %>>
+            <span>
+              Li e aceito os
+              <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a>,
+              a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>
+              e as <a href="/conduta" target="_blank" rel="noopener">Regras de Conduta</a>.
+            </span>
+          </label>
+          <p class="form-hint">Obrigatório no primeiro acesso ou se ainda não aceitou.</p>
+        </div>
+
         <button type="submit" class="btn btn-primary btn-block">Entrar na plataforma</button>
       </form>
 
       <p class="hint">Acesso restrito a contas <strong>@universo.univates.br</strong></p>
     </main>
+
+    <%- include('../partials/footer') %>
   </div>
 </body>
 </html>

@@ -8,6 +8,7 @@ const { requireAuth, getFlash } = require('./middleware/auth');
 const AuthController = require('./controllers/AuthController');
 
 const authRoutes = require('./routes/auth');
+const legalRoutes = require('./routes/legal');
 const profileRoutes = require('./routes/profile');
 const mentoresRoutes = require('./routes/mentores');
 const mentorRoutes = require('./routes/mentor');
@@ -47,6 +48,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(legalRoutes);
 app.use(authRoutes);
 
 app.get('/', (req, res) => {

@@ -2,15 +2,21 @@ const { loginUser } = require('../services/auth');
 const { setFlash } = require('../middleware/auth');
 
 function showLogin(req, res) {
-  res.render('auth/login', { erro: null, email: '' });
+  res.render('auth/login', { erro: null, email: '', requireTerms: false });
 }
 
 async function doLogin(req, res) {
-  const { email, name } = req.body;
-  const result = await loginUser(email, name);
+  const { email, name, accept_terms } = req.body;
+  const acceptTerms = accept_terms === 'on' || accept_terms === 'true';
+
+  const result = await loginUser(email, name, { acceptTerms });
 
   if (result.error) {
-    return res.render('auth/login', { erro: result.error, email: email || '' });
+    return res.render('auth/login', {
+      erro: result.error,
+      email: email || '',
+      requireTerms: result.requireTerms ?? false,
+    });
   }
 
   const { user } = result;

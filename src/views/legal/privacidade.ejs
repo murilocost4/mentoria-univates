@@ -1,0 +1,38 @@
+<%- include('../partials/page-start', { title }) %>
+
+<article class="legal-page panel">
+  <h1>Política de Privacidade</h1>
+  <p class="legal-updated">Última atualização: <%= new Date().toLocaleDateString('pt-BR') %></p>
+
+  <section>
+    <h2>1. Dados coletados</h2>
+    <p>Coletamos e-mail institucional, nome, dados de perfil (curso, disciplinas, disponibilidade), histórico de mentorias e avaliações fornecidos voluntariamente pelo usuário.</p>
+  </section>
+
+  <section>
+    <h2>2. Finalidade</h2>
+    <p>Os dados são utilizados para autenticação, gestão de perfis, conexão entre alunos e mentores, agendamento de sessões, comunicações transacionais e melhoria do serviço.</p>
+  </section>
+
+  <section>
+    <h2>3. Compartilhamento</h2>
+    <p>Informações de perfil de mentores aprovados são visíveis a alunos autenticados. Dados não são vendidos a terceiros. E-mails transacionais podem ser enviados via provedor SMTP configurado pela instituição.</p>
+  </section>
+
+  <section>
+    <h2>4. Armazenamento</h2>
+    <p>Os dados são armazenados em banco de dados seguro (Turso/SQLite). Medidas técnicas razoáveis são adotadas para proteger as informações.</p>
+  </section>
+
+  <section>
+    <h2>5. Direitos do titular</h2>
+    <p>O usuário pode solicitar correção ou exclusão de dados entrando em contato com a administração da plataforma, observadas obrigações legais e acadêmicas de retenção.</p>
+  </section>
+
+  <section>
+    <h2>6. Cookies e sessão</h2>
+    <p>Utilizamos cookies de sessão para manter o login autenticado. Não utilizamos cookies de rastreamento publicitário.</p>
+  </section>
+</article>
+
+<%- include('../partials/page-end') %>

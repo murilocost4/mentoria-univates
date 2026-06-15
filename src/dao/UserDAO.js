@@ -29,4 +29,8 @@ async function updateRole(id, role) {
   await db.run("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?", [role, id]);
 }
 
-module.exports = { findById, findByEmail, updateName, updateRole, parseJson };
+async function acceptTerms(id) {
+  await db.run("UPDATE users SET terms_accepted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?", [id]);
+}
+
+module.exports = { findById, findByEmail, updateName, updateRole, acceptTerms, parseJson };

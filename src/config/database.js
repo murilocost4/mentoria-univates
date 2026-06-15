@@ -58,6 +58,16 @@ async function execSqlFile(filePath) {
   }
 }
 
+async function runMigrations() {
+  const columns = await queryAll('PRAGMA table_info(users)');
+  const hasTerms = columns.some((c) => c.name === 'terms_accepted_at');
+
+  if (!hasTerms) {
+    await run('ALTER TABLE users ADD COLUMN terms_accepted_at TEXT');
+    console.log('Migração: coluna terms_accepted_at adicionada.');
+  }
+}
+
 async function initDatabase() {
   if (initialized) return;
 
@@ -71,6 +81,8 @@ async function initDatabase() {
     await execSqlFile(schemaPath);
     await execSqlFile(seedPath);
     console.log('Banco inicializado (schema + seed).');
+  } else {
+    await runMigrations();
   }
 
   initialized = true;

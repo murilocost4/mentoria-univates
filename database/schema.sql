@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL DEFAULT '',
     role TEXT NOT NULL DEFAULT 'ALUNO' CHECK (role IN ('ALUNO', 'MENTOR', 'ADMIN')),
+    terms_accepted_at TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

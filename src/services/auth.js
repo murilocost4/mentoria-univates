@@ -14,7 +14,11 @@ function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
 
-async function loginUser(email, name) {
+function needsTermsAcceptance(user) {
+  return !user || !user.terms_accepted_at;
+}
+
+async function loginUser(email, name, { acceptTerms = false } = {}) {
   const normalized = normalizeEmail(email);
 
   if (!isValidEmail(normalized)) {
@@ -22,23 +26,54 @@ async function loginUser(email, name) {
   }
 
   let user = await db.queryOne('SELECT * FROM users WHERE email = ?', [normalized]);
+  const isNewUser = !user;
 
-  if (!user) {
+  if (isNewUser) {
+    if (!acceptTerms) {
+      return {
+        error: 'Você precisa aceitar os Termos de Uso, a Política de Privacidade e as Regras de Conduta.',
+        requireTerms: true,
+      };
+    }
+
     const displayName = (name || '').trim() || normalized.split('@')[0];
     const result = await db.run(
-      'INSERT INTO users (email, name, role) VALUES (?, ?, ?)',
+      "INSERT INTO users (email, name, role, terms_accepted_at) VALUES (?, ?, ?, datetime('now'))",
       [normalized, displayName, 'ALUNO']
     );
 
     const userId = result.lastInsertRowid;
     await db.run('INSERT INTO student_profiles (user_id) VALUES (?)', [userId]);
     user = await db.queryOne('SELECT * FROM users WHERE id = ?', [userId]);
-  } else if (name && name.trim() && !user.name) {
-    await db.run("UPDATE users SET name = ?, updated_at = datetime('now') WHERE id = ?", [name.trim(), user.id]);
-    user = await db.queryOne('SELECT * FROM users WHERE id = ?', [user.id]);
+  } else {
+    if (!user.terms_accepted_at && !acceptTerms) {
+      return {
+        error: 'Você precisa aceitar os Termos de Uso, a Política de Privacidade e as Regras de Conduta.',
+        requireTerms: true,
+      };
+    }
+
+    if (!user.terms_accepted_at && acceptTerms) {
+      await db.run(
+        "UPDATE users SET terms_accepted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+        [user.id]
+      );
+      user = await db.queryOne('SELECT * FROM users WHERE id = ?', [user.id]);
+    }
+
+    if (name && name.trim() && !user.name) {
+      await db.run("UPDATE users SET name = ?, updated_at = datetime('now') WHERE id = ?", [name.trim(), user.id]);
+      user = await db.queryOne('SELECT * FROM users WHERE id = ?', [user.id]);
+    }
   }
 
-  return { user };
+  return { user, isNewUser };
 }
 
-module.exports = { isValidEmail, normalizeEmail, loginUser, ALLOWED_DOMAIN };
+module.exports = {
+  isValidEmail,
+  normalizeEmail,
+  loginUser,
+  needsTermsAcceptance,
+  ALLOWED_DOMAIN,
+};

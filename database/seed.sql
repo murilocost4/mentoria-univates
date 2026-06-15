@@ -1,8 +1,8 @@
-INSERT INTO users (email, name, role) VALUES
-    ('admin@universo.univates.br', 'Administrador', 'ADMIN'),
-    ('aluno@universo.univates.br', 'João Aluno', 'ALUNO'),
-    ('mentor.aprovado@universo.univates.br', 'Maria Mentor', 'MENTOR'),
-    ('mentor.pendente@universo.univates.br', 'Pedro Pendente', 'MENTOR');
+INSERT INTO users (email, name, role, terms_accepted_at) VALUES
+    ('admin@universo.univates.br', 'Administrador', 'ADMIN', datetime('now')),
+    ('aluno@universo.univates.br', 'João Aluno', 'ALUNO', datetime('now')),
+    ('mentor.aprovado@universo.univates.br', 'Maria Mentor', 'MENTOR', datetime('now')),
+    ('mentor.pendente@universo.univates.br', 'Pedro Pendente', 'MENTOR', datetime('now'));
 
 INSERT INTO student_profiles (user_id, course, interests) VALUES
     (2, 'Ciência da Computação', '["Algoritmos","Banco de Dados"]');
