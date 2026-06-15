@@ -57,9 +57,23 @@ Na primeira execução, o servidor também tenta criar as tabelas automaticament
 
 Se `TURSO_DATABASE_URL` **não** estiver definido, o app usa SQLite local em `database/app.db` automaticamente.
 
-### Vercel
+### Vercel (deploy via GitHub)
 
-Adicione as variáveis `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN` em **Settings → Environment Variables** do projeto na Vercel. Rode `npm run db:init` localmente uma vez (com as mesmas credenciais) para criar as tabelas no banco remoto.
+1. Conecte o repositório na [Vercel](https://vercel.com) — cada push no GitHub dispara deploy.
+2. O arquivo `vercel.json` já configura o Express como serverless.
+3. Rode **uma vez** localmente: `npm run db:init` (com as credenciais do Turso).
+4. Em **Settings → Environment Variables**, configure:
+
+| Variável | Obrigatória |
+|----------|-------------|
+| `TURSO_DATABASE_URL` | Sim |
+| `TURSO_AUTH_TOKEN` | Sim |
+| `SESSION_SECRET` | Sim (string longa e aleatória) |
+| `BASE_URL` | Sim (ex: `https://seu-app.vercel.app`) |
+
+Opcionais: `SMTP_*`, `MAIL_FROM`, `SESSION_MAX_AGE_MS`.
+
+**Não commite o `.env`** — ele já está no `.gitignore`.
 
 ## Login (modo dev)
 
@@ -67,7 +81,7 @@ Não há senha. Informe apenas o e-mail institucional `@universo.univates.br`.
 
 - Contas válidas são criadas automaticamente no primeiro login (papel `ALUNO`).
 - Outros domínios (ex.: `@gmail.com`) são bloqueados com mensagem clara.
-- Sessão expira em 24h (configurável) e renova a cada requisição (`rolling`).
+- Sessão expira em 24h (configurável) via cookie assinado.
 
 ## Usuários de teste (seed)
 

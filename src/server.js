@@ -1,7 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 
 const { initDatabase } = require('./config/database');
 const { requireAuth, getFlash } = require('./middleware/auth');
@@ -17,23 +17,34 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
 
+app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret',
-  resave: false,
-  saveUninitialized: false,
-  rolling: true,
-  cookie: {
-    maxAge: Number(process.env.SESSION_MAX_AGE_MS || 86400000),
-    httpOnly: true,
-  },
+app.use(cookieSession({
+  name: 'mentoria_sess',
+  keys: [process.env.SESSION_SECRET || 'dev-secret'],
+  maxAge: Number(process.env.SESSION_MAX_AGE_MS || 86400000),
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax',
 }));
+
+let dbReady = initDatabase();
+
+app.use(async (req, res, next) => {
+  try {
+    await dbReady;
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.use((req, res, next) => {
   res.locals.user = req.session.userId
@@ -69,7 +80,7 @@ app.use((err, req, res, _next) => {
 });
 
 async function start() {
-  await initDatabase();
+  await dbReady;
   app.listen(PORT, () => {
     const usingTurso = Boolean(process.env.TURSO_DATABASE_URL);
     console.log(`Servidor rodando em http://localhost:${PORT}`);
